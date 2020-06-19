@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
+  <title>メモアプリ</title>
+</head>
+
+<body>
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand ">
+      <a class="navbar-item" href="/">
+        メモアプリ
+      </a>
+      <a class="navbar-item " href="/memo/new">
+        新規メモ作成
+      </a>
+    </div>
+  </nav>
+  <div class="columns ">
+    <div class="column is-three-fifths is-offset-one-fifth">
+      <p class="is_large">メモ一覧</p>
+      <ul style="list-style: disc;">
+        <% @memos.each { |x| %>
+        <li><a href="/memo/<%= x["id"]%>"><%=  x["memo"].split("\r\n").first %></a></li>
+        <%}%>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

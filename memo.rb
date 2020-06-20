@@ -44,7 +44,7 @@ def list_memo(x, id)
   if id == x["id"].to_s
     @id = id
     @memo = x["memo"]
-    p @memo_to_html = CommonMarker.render_html(@memo, :DEFAULT)
+    @memo_to_html = CommonMarker.render_html(@memo, :DEFAULT)
   end
 end
 

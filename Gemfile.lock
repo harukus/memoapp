@@ -10,6 +10,7 @@ GEM
     multi_json (1.14.1)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
+    pg (1.2.3)
     rack (2.2.2)
     rack-protection (2.0.8.1)
       rack
@@ -36,6 +37,7 @@ PLATFORMS
 
 DEPENDENCIES
   commonmarker (= 0.18.2)
+  pg (~> 1.2)
   redcarpet
   sinatra
   sinatra-contrib

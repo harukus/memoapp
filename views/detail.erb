@@ -34,7 +34,8 @@
               <a href="/memo/edit/<%= @id%>" 　 class="button is-primary is-light ">編集する</a>
             </div>
             <div class="column  has-text-centered">
-              <form method="post" action="/memo/<%= @id%>?_method=DELETE">
+              <form method="post" action="/memo/<%= @id%>">
+                <input type="hidden" name="_method" value="delete">
                 <input type="submit" value="削除する" class="button is-danger is-light">
               </form>
             </div>

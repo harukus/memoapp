@@ -21,7 +21,8 @@
   </nav>
   <div class="columns ">
     <div class="column is-three-fifths is-offset-one-fifth">
-      <form action="/memo/<%= @id%>?_method=PATCH" method="post">
+      <form action="/memo/<%= @id%>" method="post">
+        <input type="hidden" name="_method" value="patch">
         <div>
           <textarea name="memo" rows="8"><%=@memo%></textarea>
         </div>

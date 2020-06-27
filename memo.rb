@@ -5,42 +5,47 @@ require "commonmarker"
 
 class Memo
   attr_accessor :memos
-
   def memos
-    File.open("memo.json", "r") do |f|
-        @memos = JSON.load(f)
+    File.open("memo.json", "r") do |file|
+        @memos = JSON.load(file)
       end
-    @memos
   end
 
-  def post_memos(memos)
+  def save_memos
     File.open("memo.json", "w") do |file|
-      JSON.dump(memos, file)
+      JSON.dump(@memos, file)
     end
   end
 
-  def save_id(file)
-    if file["memos"].empty?
-      last_id = 0
-    else
-      last_id = file["memos"][-1]["id"]
+  def next_id
+    if memos["memos"].empty?
+      return 1
     end
-    next_id = last_id + 1
-    @id = next_id
+    memos["memos"][-1]["id"] +1
   end
 
-  def list_memo(x, id)
-    if id == x["id"].to_s
-      @id = id
-      @memo = x["memo"]
-      @memo_to_html = CommonMarker.render_html(@memo, :DEFAULT)
+  def get_content_by_id(id)
+    content = nil
+    memos["memos"].each do |memo|
+      if id == memo["id"].to_s
+        content = memo["content"]
+      end
     end
+    content
   end
 
-  def edit_memo(x, id)
-    if id == x["id"].to_s
-      x["memo"] = params[:memo]
+  def update_content_by_id(id, content)
+    @memos = memos
+    @memos["memos"].each do |memo|
+      if id == memo["id"].to_s
+        memo["content"] = content
+      end
     end
+ end
+
+  def delete_by_id(id)
+    @memos = memos
+    @memos["memos"].delete_if { |memo| id == memo["id"].to_s }
   end
 end
 
@@ -56,43 +61,37 @@ get "/memo/new" do
 end
 
 post "/memo" do
-  @memo = params[:memo]
-  @memos = memo.memos
-  save_id(@memos)
-  @memos["memos"].push({ id: @id, memo: @memo })
-  post_memos(@memos)
+  @content = params[:content]
+  @id = memo.next_id
+  memo.memos["memos"].push({ id: @id, content: @content })
+  memo.save_memos
   redirect to("/memo/#{@id}")
 end
 
 get "/memo/edit/:id" do |id|
-  @memos = memo.memos["memos"]
-  @memos.each { |x|
-    list_memo(x, id)
-  }
+  @id = id
+  @content = memo.get_content_by_id(id)
+
   erb :edit_form
 end
 
 get "/memo/:id" do |id|
-  @memos = memo.memos["memos"]
-  @memos.each { |x|
-    list_memo(x, id)
-  }
+  @id = id
+  content = memo.get_content_by_id(id)
+  @html = CommonMarker.render_html(content, :DEFAULT)
+
   erb :detail
 end
 
 patch "/memo/:id" do |id|
-  @memos = memo.memos
-  @memos["memos"].each { |x|
-    edit_memo(x, id)
-  }
-  post_memos(@memos)
+  content = params[:content]
+  memo.update_content_by_id(id, content)
+  memo.save_memos
   redirect to("/memo/#{id}")
 end
 
 delete "/memo/:id" do |id|
-  @id = id
-  @memos = memo.memos
-  @memos["memos"].delete_if { |x| id == x["id"].to_s }
-  post_memos(@memos)
+  memo.delete_by_id(id)
+  memo.save_memos
   redirect to("/")
 end

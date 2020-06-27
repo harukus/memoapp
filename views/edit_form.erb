@@ -24,7 +24,7 @@
       <form action="/memo/<%= @id%>" method="post">
         <input type="hidden" name="_method" value="patch">
         <div>
-          <textarea name="memo" rows="8"><%=@memo%></textarea>
+          <textarea name="content" rows="8"><%=@content%></textarea>
         </div>
         <div>
           <input type="submit" value="更新" class="button is-info is-light">

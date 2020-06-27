@@ -24,7 +24,7 @@
       <p class="is_large">メモ一覧</p>
       <ul style="list-style: disc;">
         <% @memos.each { |x| %>
-        <li><a href="/memo/<%= x["id"]%>"><%=  x["memo"].split("\r\n").first %></a></li>
+        <li><a href="/memo/<%= x["id"]%>"><%=  x["content"].split("\r\n").first %></a></li>
         <%}%>
         </ul>
       </div>

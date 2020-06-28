@@ -1,14 +1,14 @@
 require "sinatra"
 require "sinatra/reloader"
-require "json"
+require "pg"
 require "commonmarker"
 
 class Memo
   attr_accessor :memos
   def memos
-    File.open("memo.json", "r") do |file|
-        @memos = JSON.load(file)
-      end
+    connection = PG.connect(host: "localhost", user: "postgres", dbname: "memoapp")
+    id = connection.exec("SELECT id FROM memo")
+    content = connection.exec("SELECT content FROM memo")
   end
 
   def save_memos
@@ -52,7 +52,9 @@ end
 memo = Memo.new
 
 get "/" do
-  @memos = memo.memos["memos"]
+  connection = PG.connect(host: "localhost", user: "postgres", dbname: "memoapp")
+  @memos = connection.exec("SELECT * FROM memo")
+
   erb :list
 end
 
@@ -61,37 +63,40 @@ get "/memo/new" do
 end
 
 post "/memo" do
-  @content = params[:content]
-  @id = memo.next_id
-  memo.memos["memos"].push({ id: @id, content: @content })
-  memo.save_memos
-  redirect to("/memo/#{@id}")
+  connection = PG.connect(host: "localhost", user: "postgres", dbname: "memoapp")
+  res = connection.exec("insert into memo (content) values ('#{params[:content]}') RETURNING id")
+  redirect to("/memo/#{res.first['id']}")
 end
 
 get "/memo/edit/:id" do |id|
+  connection = PG.connect(host: "localhost", user: "postgres", dbname: "memoapp")
   @id = id
-  @content = memo.get_content_by_id(id)
+  res = connection.exec("SELECT content FROM memo WHERE id = #{@id}")
+  @content = res.first["content"]
 
   erb :edit_form
 end
 
 get "/memo/:id" do |id|
+  connection = PG.connect(host: "localhost", user: "postgres", dbname: "memoapp")
   @id = id
-  content = memo.get_content_by_id(id)
-  @html = CommonMarker.render_html(content, :DEFAULT)
+  res = connection.exec("SELECT content FROM memo WHERE id = #{@id}")
+  @html = CommonMarker.render_html(res.first["content"], :DEFAULT)
 
   erb :detail
 end
 
 patch "/memo/:id" do |id|
   content = params[:content]
-  memo.update_content_by_id(id, content)
-  memo.save_memos
-  redirect to("/memo/#{id}")
+  connection = PG.connect(host: "localhost", user: "postgres", dbname: "memoapp")
+  @id = id
+  res = connection.exec("UPDATE memo SET content = '#{params[:content]}' WHERE id = #{@id}")
+  redirect to("/memo/#{@id}")
 end
 
 delete "/memo/:id" do |id|
-  memo.delete_by_id(id)
-  memo.save_memos
+  connection = PG.connect(host: "localhost", user: "postgres", dbname: "memoapp")
+  @id = id
+  connection.exec("DELETE FROM memo WHERE id = #{@id}")
   redirect to("/")
 end

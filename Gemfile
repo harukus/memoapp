@@ -10,4 +10,4 @@ gem "sinatra-contrib"
 gem "redcarpet"
 gem "commonmarker", "0.18.2"
 
-gem "pg", "~> 1.2"
+gem "pg"

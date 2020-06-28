@@ -23,8 +23,8 @@
     <div class="column is-three-fifths is-offset-one-fifth">
       <p class="is_large">メモ一覧</p>
       <ul style="list-style: disc;">
-        <% @memos.each { |x| %>
-        <li><a href="/memo/<%= x["id"]%>"><%=  x["content"].split("\r\n").first %></a></li>
+        <% @memos.each { |memo| %>
+        <li><a href="/memo/<%= memo["id"]%>"><%=  memo["content"].split("\r\n").first %></a></li>
         <%}%>
         </ul>
       </div>

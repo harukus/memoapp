@@ -6,27 +6,31 @@ require "commonmarker"
 class Memo
   def initialize
     @conn = PG.connect(host: "localhost", user: "postgres", dbname: "memoapp")
+    @conn.prepare("insert_memo", "insert into memo (content) values ($1)  RETURNING id")
+    @conn.prepare("get_memo", "SELECT content FROM memo WHERE id = $1")
+    @conn.prepare("update_memo", "UPDATE memo SET content = $1 WHERE id = $2")
+    @conn.prepare("delete_memo", "DELETE FROM memo WHERE id = $1")
   end
   def list_all
     @conn.exec("SELECT * FROM memo")
   end
 
   def add(content)
-    res = @conn.exec("insert into memo (content) values ('#{content}') RETURNING id")
+    res = @conn.exec_prepared("insert_memo", [content])
     res.first["id"]
   end
 
   def get_content_by_id(id)
-    res = @conn.exec("SELECT content FROM memo WHERE id = #{id}")
+    res = @conn.exec_prepared("get_memo", [id])
     res.first["content"]
   end
 
   def update_content_by_id(id, content)
-    @conn.exec("UPDATE memo SET content = '#{content}' WHERE id = #{id}")
+    @conn.exec_prepared("update_memo", [content, id])
  end
 
   def delete_by_id(id)
-    @conn.exec("DELETE FROM memo WHERE id = #{id}")
+    @conn.exec_prepared("delete_memo", [id])
   end
 end
 

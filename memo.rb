@@ -4,8 +4,7 @@ require "pg"
 require "commonmarker"
 
 class Memo
-  attr_accessor :memos
-  def memos
+  def list_all
     connection = PG.connect(host: "localhost", user: "postgres", dbname: "memoapp")
     connection.exec("SELECT * FROM memo")
   end
@@ -36,7 +35,7 @@ end
 memo = Memo.new
 
 get "/" do
-  @memos = memo.memos
+  @memos = memo.list_all
 
   erb :list
 end

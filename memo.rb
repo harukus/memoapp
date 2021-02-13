@@ -1,58 +1,44 @@
 require "sinatra"
 require "sinatra/reloader"
-require "json"
+require "pg"
 require "commonmarker"
 
 class Memo
-  attr_accessor :memos
-  def memos
-    File.open("memo.json", "r") do |file|
-        @memos = JSON.load(file)
-      end
+  def initialize
+    @conn = PG.connect(host: "localhost", user: "postgres", dbname: "memoapp")
+    @conn.prepare("insert_memo", "insert into memo (content) values ($1)  RETURNING id")
+    @conn.prepare("get_memo", "SELECT content FROM memo WHERE id = $1")
+    @conn.prepare("update_memo", "UPDATE memo SET content = $1 WHERE id = $2")
+    @conn.prepare("delete_memo", "DELETE FROM memo WHERE id = $1")
+  end
+  def list_all
+    @conn.exec("SELECT * FROM memo")
   end
 
-  def save_memos
-    File.open("memo.json", "w") do |file|
-      JSON.dump(@memos, file)
-    end
-  end
-
-  def next_id
-    if memos["memos"].empty?
-      return 1
-    end
-    memos["memos"][-1]["id"] +1
+  def add(content)
+    res = @conn.exec_prepared("insert_memo", [content])
+    res.first["id"]
   end
 
   def get_content_by_id(id)
-    content = nil
-    memos["memos"].each do |memo|
-      if id == memo["id"].to_s
-        content = memo["content"]
-      end
-    end
-    content
+    res = @conn.exec_prepared("get_memo", [id])
+    res.first["content"]
   end
 
   def update_content_by_id(id, content)
-    @memos = memos
-    @memos["memos"].each do |memo|
-      if id == memo["id"].to_s
-        memo["content"] = content
-      end
-    end
+    @conn.exec_prepared("update_memo", [content, id])
  end
 
   def delete_by_id(id)
-    @memos = memos
-    @memos["memos"].delete_if { |memo| id == memo["id"].to_s }
+    @conn.exec_prepared("delete_memo", [id])
   end
 end
 
 memo = Memo.new
 
 get "/" do
-  @memos = memo.memos["memos"]
+  @memos = memo.list_all
+
   erb :list
 end
 
@@ -61,17 +47,13 @@ get "/memo/new" do
 end
 
 post "/memo" do
-  @content = params[:content]
-  @id = memo.next_id
-  memo.memos["memos"].push({ id: @id, content: @content })
-  memo.save_memos
-  redirect to("/memo/#{@id}")
+  id = memo.add(params[:content])
+  redirect to("/memo/#{id}")
 end
 
 get "/memo/edit/:id" do |id|
   @id = id
   @content = memo.get_content_by_id(id)
-
   erb :edit_form
 end
 
@@ -84,14 +66,11 @@ get "/memo/:id" do |id|
 end
 
 patch "/memo/:id" do |id|
-  content = params[:content]
-  memo.update_content_by_id(id, content)
-  memo.save_memos
+  memo.update_content_by_id(id, params[:content])
   redirect to("/memo/#{id}")
 end
 
 delete "/memo/:id" do |id|
   memo.delete_by_id(id)
-  memo.save_memos
   redirect to("/")
 end

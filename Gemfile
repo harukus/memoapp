@@ -8,6 +8,6 @@ git_source(:github) { |repo_name| "https://github.com/#{repo_name}" }
 gem "sinatra"
 gem "sinatra-contrib"
 gem "redcarpet"
-gem "commonmarker", "0.18.2"
+gem "commonmarker", "0.23.4"
 
 gem "pg", "~> 1.2"
